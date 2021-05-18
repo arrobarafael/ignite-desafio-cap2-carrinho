@@ -33,6 +33,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
   });
 
   const addProduct = async (productId: number) => {
+    console.log('adicionando', productId);
     try {
       // TODO
     } catch {
