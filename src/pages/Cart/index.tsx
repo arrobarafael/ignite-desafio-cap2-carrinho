@@ -15,23 +15,27 @@ interface Product {
   price: number;
   image: string;
   amount: number;
+  subTotal: number;
+  priceFormatted: string;
 }
 
 const Cart = (): JSX.Element => {
   const { cart, removeProduct, updateProductAmount } = useCart();
 
-  // const cartFormatted = cart.map(product => ({
-  //   // TODO
-  // }))
+  const cartFormatted = cart.map((product) => ({
+    ...product,
+    subTotal: product.amount * product.price,
+    priceFormatted: formatPrice(product.price),
+  }));
+  localStorage.setItem('@RocketShoes:cart', JSON.stringify(cartFormatted));
+
   const total = formatPrice(
     cart.reduce((sumTotal, product) => {
-      // TODO
       return product.price * product.amount + sumTotal;
     }, 0)
   );
 
   function handleProductIncrement(product: Product) {
-    // TODO
     const p = {
       productId: product.id,
       amount: product.amount,
@@ -41,7 +45,6 @@ const Cart = (): JSX.Element => {
   }
 
   function handleProductDecrement(product: Product) {
-    // TODO
     const p = {
       productId: product.id,
       amount: product.amount,
@@ -51,7 +54,6 @@ const Cart = (): JSX.Element => {
   }
 
   function handleRemoveProduct(productId: number) {
-    // TODO
     removeProduct(productId);
   }
 
