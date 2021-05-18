@@ -32,9 +32,39 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
     return [];
   });
 
+  const getProductInDatabase = async (productId: number) => {
+    const { data } = await api.get('products');
+    return data.filter((product: Product) => {
+      product.amount = 0;
+      return product.id === productId;
+    });
+  };
+
+  const existProductInCart = (productId: number) => {
+    const quantity = cart.filter((item) => {
+      return item.id === productId;
+    });
+    return quantity.length;
+  };
+
   const addProduct = async (productId: number) => {
-    console.log('adicionando', productId);
     try {
+      const [selectedProduct] = await getProductInDatabase(productId);
+      if (selectedProduct) {
+        if (existProductInCart(productId)) {
+          const updatedCart = cart.map((item) => {
+            if (item.id === productId) {
+              item.amount += 1;
+            }
+            return item;
+          });
+          setCart([...updatedCart]);
+        } else {
+          selectedProduct.amount += 1;
+          setCart([...cart, selectedProduct]);
+        }
+      }
+      console.log(cart);
       // TODO
     } catch {
       // TODO
