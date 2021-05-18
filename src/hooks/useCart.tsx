@@ -140,7 +140,11 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
       const updatedCart = cart.map((item) => {
         if (item.id === productId) {
           if (operator === 'increment') {
-            item.amount += 1;
+            if (checkAvaliableStock(productId, item.amount + 1)) {
+              item.amount += 1;
+            } else {
+              throw new Error('Estoque indisponível!');
+            }
           } else {
             item.amount -= 1;
           }
@@ -150,6 +154,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
       setCart(updatedCart);
     } catch {
       // TODO
+      toast.error('Erro na remoção do produto');
     }
   };
 
