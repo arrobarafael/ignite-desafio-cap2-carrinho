@@ -19,7 +19,6 @@ interface Product {
 
 const Cart = (): JSX.Element => {
   const { cart, removeProduct, updateProductAmount } = useCart();
-  console.log(cart);
 
   // const cartFormatted = cart.map(product => ({
   //   // TODO
@@ -30,7 +29,6 @@ const Cart = (): JSX.Element => {
       return product.price * product.amount + sumTotal;
     }, 0)
   );
-  console.log(total);
 
   function handleProductIncrement(product: Product) {
     // TODO
