@@ -10,13 +10,18 @@ interface CartProviderProps {
 interface UpdateProductAmount {
   productId: number;
   amount: number;
+  operator: string;
 }
 
 interface CartContextData {
   cart: Product[];
   addProduct: (productId: number) => Promise<void>;
   removeProduct: (productId: number) => void;
-  updateProductAmount: ({ productId, amount }: UpdateProductAmount) => void;
+  updateProductAmount: ({
+    productId,
+    amount,
+    operator,
+  }: UpdateProductAmount) => void;
 }
 
 const CartContext = createContext<CartContextData>({} as CartContextData);
@@ -87,9 +92,24 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
   const updateProductAmount = async ({
     productId,
     amount,
+    operator,
   }: UpdateProductAmount) => {
+    console.log('id: ', productId);
+    console.log('amount: ', amount);
+
     try {
       // TODO
+      const updatedCart = cart.map((item) => {
+        if (item.id === productId) {
+          if (operator === 'increment') {
+            item.amount += 1;
+          } else {
+            item.amount -= 1;
+          }
+        }
+        return item;
+      });
+      setCart(updatedCart);
     } catch {
       // TODO
     }
