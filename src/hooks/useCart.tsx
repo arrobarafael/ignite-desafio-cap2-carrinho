@@ -1,10 +1,4 @@
-import {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
+import { createContext, ReactNode, useContext, useState } from 'react';
 import { toast } from 'react-toastify';
 import { api } from '../services/api';
 import { Product, Stock } from '../types';
@@ -28,7 +22,6 @@ interface CartContextData {
 const CartContext = createContext<CartContextData>({} as CartContextData);
 
 export function CartProvider({ children }: CartProviderProps): JSX.Element {
-  // const [stock, setStock] = useState<Stock[]>([]);
   let stock: Stock[];
   const [cart, setCart] = useState<Product[]>(() => {
     const storagedCart = localStorage.getItem('@RocketShoes:cart');
@@ -46,15 +39,8 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
         return item;
       }
     });
-    return registro.length;
-  };
 
-  const getProductInDatabase = async (productId: number) => {
-    const { data } = await api.get('products');
-    return data.filter((product: Product) => {
-      product.amount = 0;
-      return product.id === productId;
-    });
+    return registro.length;
   };
 
   const existProductInCart = (productId: number) => {
@@ -65,11 +51,12 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
   };
 
   const addProduct = async (productId: number) => {
+    let initialAmount = 0;
     try {
-      const [selectedProduct] = await getProductInDatabase(productId);
-      const { data } = await api.get('stock');
-      stock = data;
-      console.log('setou');
+      const responseProduct = await api.get(`products/${productId}`);
+      const selectedProduct = responseProduct.data;
+      const responseStock = await api.get('stock');
+      stock = responseStock.data;
 
       if (selectedProduct) {
         if (existProductInCart(productId)) {
@@ -89,8 +76,8 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
             JSON.stringify([...updatedCart])
           );
         } else {
-          if (checkAvaliableStock(productId, selectedProduct.amount + 1)) {
-            selectedProduct.amount += 1;
+          if (checkAvaliableStock(productId, initialAmount + 1)) {
+            selectedProduct.amount = 1;
             const updatedCart = [...cart, selectedProduct];
             setCart(updatedCart);
             localStorage.setItem(
@@ -104,7 +91,6 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
       } else {
         throw new Error();
       }
-      localStorage.setItem('@RocketShoes:cart', JSON.stringify(cart));
     } catch {
       toast.error('Erro na adição do produto');
     }
