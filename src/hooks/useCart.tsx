@@ -22,7 +22,6 @@ interface CartContextData {
 const CartContext = createContext<CartContextData>({} as CartContextData);
 
 export function CartProvider({ children }: CartProviderProps): JSX.Element {
-  let stock: Stock[];
   const [cart, setCart] = useState<Product[]>(() => {
     const storagedCart = localStorage.getItem('@RocketShoes:cart');
 
@@ -33,16 +32,6 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
     return [];
   });
 
-  const checkAvaliableStock = (productId: number, amount: number) => {
-    const registro = stock.filter((item) => {
-      if (item.id === productId && amount <= item.amount) {
-        return item;
-      }
-    });
-
-    return registro.length;
-  };
-
   const existProductInCart = (productId: number) => {
     const quantity = cart.filter((item) => {
       return item.id === productId;
@@ -51,18 +40,15 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
   };
 
   const addProduct = async (productId: number) => {
-    let initialAmount = 0;
     try {
-      const responseProduct = await api.get(`products/${productId}`);
-      const selectedProduct = responseProduct.data;
-      const responseStock = await api.get('stock');
-      stock = responseStock.data;
+      const { data: selectedProduct } = await api.get(`products/${productId}`);
+      const { data: stock } = await api.get(`stock/${productId}`);
 
       if (selectedProduct) {
         if (existProductInCart(productId)) {
           const updatedCart = cart.map((item) => {
             if (item.id === productId) {
-              if (checkAvaliableStock(productId, item.amount + 1)) {
+              if (item.amount + 1 <= stock.amount) {
                 item.amount += 1;
               } else {
                 toast.error('Quantidade solicitada fora de estoque');
@@ -76,7 +62,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
             JSON.stringify([...updatedCart])
           );
         } else {
-          if (checkAvaliableStock(productId, initialAmount + 1)) {
+          if (stock.amount >= 1) {
             selectedProduct.amount = 1;
             const updatedCart = [...cart, selectedProduct];
             setCart(updatedCart);
@@ -115,13 +101,12 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
     amount,
   }: UpdateProductAmount) => {
     try {
-      const { data } = await api.get('stock');
-      stock = data;
+      const { data: stock } = await api.get(`stock/${productId}`);
 
       if (existProductInCart(productId)) {
         const updatedCart = cart.map((item) => {
           if (item.id === productId) {
-            if (checkAvaliableStock(productId, amount)) {
+            if (amount <= stock.amount) {
               item.amount = amount;
             } else {
               toast.error('Quantidade solicitada fora de estoque');
@@ -129,6 +114,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
           }
           return item;
         });
+
         setCart(updatedCart);
         localStorage.setItem('@RocketShoes:cart', JSON.stringify(updatedCart));
       } else {
